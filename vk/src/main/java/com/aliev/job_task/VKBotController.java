@@ -21,7 +21,7 @@ import java.util.Properties;
 
 @RestController
 @RequestMapping("/api/")
-public class BotController {
+public class VKBotController {
     @Autowired
     private Environment env;
 
@@ -37,20 +37,7 @@ public class BotController {
             var messageBody = (String)message.get("text");
             var authorId = (Integer) message.get("from_id");
 
-            var answer = "Вы сказали: " + messageBody;
-
-            var restTemplate = new RestTemplate();
-            var apiResponse = restTemplate.exchange(
-                "https://api.vk.com/method/messages.send?" +
-                "&message=" + answer +
-                "&peer_id=" + authorId +
-                "&access_token=" + accessToken +
-                "&v=" + "5.199" +
-                "&random_id=" + "42",
-                HttpMethod.GET,
-                null,
-                String.class
-            );
+            var apiResponse = sendMessageToVK(messageBody, authorId, accessToken);
 
             var apiResponseStatusCode = apiResponse.getStatusCode();
             if(!apiResponseStatusCode.is2xxSuccessful()) {
@@ -61,6 +48,25 @@ public class BotController {
         } else {
             response = new ResponseEntity<>("Unsupported action.", HttpStatusCode.valueOf(400));
         }
+        return response;
+    }
+
+    private ResponseEntity<String> sendMessageToVK(String message, Integer peerId, String accessToken) {
+        var answer = "Вы сказали: " + message;
+
+        var restTemplate = new RestTemplate();
+        var response = restTemplate.exchange(
+                "https://api.vk.com/method/messages.send?" +
+                        "&message=" + answer +
+                        "&peer_id=" + peerId +
+                        "&access_token=" + accessToken +
+                        "&v=" + "5.199" +
+                        "&random_id=" + "42",
+                HttpMethod.GET,
+                null,
+                String.class
+        );
+
         return response;
     }
 
